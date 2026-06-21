@@ -1,0 +1,6 @@
+<!-- -->
+<launch>
+    <rosparam file="config/rosparam_system.yaml"    command="load"/>    
+    <node pkg="planning_space" type="planning_space" name="planning_space" output="screen" respawn="true">
+    </node>
+</launch>

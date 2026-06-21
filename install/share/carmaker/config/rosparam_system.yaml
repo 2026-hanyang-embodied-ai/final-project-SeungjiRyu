@@ -1,0 +1,38 @@
+# Task period [s]
+task_period:
+  ## BSW
+  period_can_parser: 0.0001
+  period_can_transmitter: 0.001
+  
+  ## RTE
+  period_tf_dynamic: 0.01
+  period_tf_static: 10
+
+  ## HMI
+  period_hmi: 0.01
+
+  ## SIM
+  period_vehicle_driver: 0.1
+  period_object_driver: 0.1
+  period_vehicle_control: 0.02
+  period_route_driver: 0.1
+
+  ## APP
+  # Evaluation
+  period_evaluation: 0.05
+  
+  # Perception
+  period_motion_prediction: 0.02
+
+  # Planning
+  period_map_loader: 1.0
+  period_planning_space: 0.05
+  period_goalpoint_planning: 0.05
+  period_global_planning: 0.05
+  period_behavior_planning: 0.05
+  period_mid2mid_planning_ml_node: 0.1
+  
+  # Control
+  period_lateral_control: 0.02
+  period_longitudinal_control: 0.02
+

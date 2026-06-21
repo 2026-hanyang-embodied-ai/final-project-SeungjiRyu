@@ -1,0 +1,8 @@
+prefix=/home/ailab/git/HYU_Validation_Framework/install
+
+Name: mid2mid_planning_ml
+Description: Description of mid2mid_planning_ml
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

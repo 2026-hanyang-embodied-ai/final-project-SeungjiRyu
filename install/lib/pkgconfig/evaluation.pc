@@ -1,0 +1,8 @@
+prefix=/home/ailab/git/HYU_Validation_Framework/install
+
+Name: evaluation
+Description: Description of evaluation
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,9 @@
+std_msgs/Header header 
+uint32 id
+uint16 on_ego
+
+autohyu_msgs/TrajectoryBoundary left_boundary
+autohyu_msgs/TrajectoryBoundary right_boundary
+autohyu_msgs/SpatialTrajectory spatial_trajectory
+autohyu_msgs/TemporalTrajectory temporal_trajectory
+autohyu_msgs/BehaviorTrajectoryPoint[] point

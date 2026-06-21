@@ -1,0 +1,20 @@
+(cl:in-package carmaker_msgs-msg)
+(cl:export '(HEADER-VAL
+          HEADER
+          TIME-VAL
+          TIME
+          CYCLENO-VAL
+          CYCLENO
+          SYNTHDELAY-VAL
+          SYNTHDELAY
+          LATITUDE-VAL
+          LATITUDE
+          LONGITUDE-VAL
+          LONGITUDE
+          ALTITUDE-VAL
+          ALTITUDE
+          HDOP-VAL
+          HDOP
+          VDOP-VAL
+          VDOP
+))

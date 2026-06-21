@@ -1,0 +1,8 @@
+prefix=/home/ailab/git/HYU_Validation_Framework/install
+
+Name: carmaker
+Description: Description of carmaker
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,1 @@
+../../../src/mid2mid_planning_diffusion/scripts/mid2mid_planning_diffusion_node.py

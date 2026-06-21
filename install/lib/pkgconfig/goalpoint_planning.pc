@@ -1,0 +1,8 @@
+prefix=/home/ailab/git/HYU_Validation_Framework/install
+
+Name: goalpoint_planning
+Description: Description of goalpoint_planning
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: 

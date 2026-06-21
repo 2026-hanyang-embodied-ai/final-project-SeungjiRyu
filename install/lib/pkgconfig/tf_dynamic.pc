@@ -1,0 +1,8 @@
+prefix=/home/ailab/git/HYU_Validation_Framework/install
+
+Name: tf_dynamic
+Description: Description of tf_dynamic
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

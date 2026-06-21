@@ -1,0 +1,323 @@
+#!/usr/bin/env python3
+'''
+  @file         mid2mid_planning_ml_node.py
+  @brief        ROS node for ML-based planning using PLUTO algorithm
+
+  @authors      Yuseung Na (yuseungna@hanyang.ac.kr)
+                Jonghyun Lee (jonghyunlee@hanyang.ac.kr)
+                Seungji Ryu (seungjiryu@hanyang.ac.kr)
+
+  @date         2024-10-10 created by Jonghyun Lee
+                2024-10-25 Implement visualization of model input in local coordinates by Seungji Ryu
+                2025-12-01 Apply coding guidelines for industrial delivery
+'''
+
+import os
+import sys
+import rospy
+import gc
+import time
+import numpy as np
+from concurrent.futures import ThreadPoolExecutor
+
+# ------------------------------------------------------------------------------
+# Path Setup (Release Version)
+# ------------------------------------------------------------------------------
+# Add current directory to path for pluto package loading
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
+
+# ------------------------------------------------------------------------------
+# Imports
+# ------------------------------------------------------------------------------
+# ROS Imports
+import autohyu_msgs.msg as autohyu_msgs
+from visualization_msgs.msg import MarkerArray
+
+# Algorithm Imports
+try:
+    from pluto.pluto_algorithm import PLUTO
+except ImportError as e:
+    rospy.logerr(f"[Mid2Mid] Algorithm Import Error: {e}")
+    sys.exit(1)
+
+# BSW Imports (installed modules from install/lib/python3/dist-packages)
+try:
+    from ros_bridge_python import ros_bridge_trajectories
+    from util_function import function_transform
+except ImportError as e:
+    rospy.logwarn(f"[Mid2Mid] System module import failed: {e}")
+
+
+class MLPlanningNode():
+    """
+    ROS node for ML-based trajectory planning using PLUTO algorithm.
+
+    This node subscribes to planning space information and publishes
+    planned trajectories and object predictions for autonomous driving.
+    """
+
+    def __init__(self, node_name, period):
+        """
+        Initialize ML Planning Node.
+
+        Args:
+            node_name: Name of the ROS node
+            period: Update period in seconds (e.g., 0.1 for 10Hz)
+        """
+
+        # Initialize node
+        rospy.logwarn(f"[{node_name}] Initialize node (Period: {1/period} Hz)")
+
+        # Node initialization
+        rospy.init_node(node_name)
+        self.period = period
+
+        # Subscriber initialization
+        self.s_planning_space_ = rospy.Subscriber(
+            "app/pla/planning_space", autohyu_msgs.PlanningSpace, self.CallbackPlanning, queue_size=1
+        )
+        self.i_planning_space_ = autohyu_msgs.PlanningSpace()
+        self.b_is_planning_space_ = False
+        self.alg_ml_planning_ = PLUTO()
+        self.b_time_validation_ = True
+        self.b_rviz_on_ = True
+        self.iter_idx = 0
+
+        # Performance monitoring
+        self.max_inference_time = 0.0
+        self.avg_inference_time = 0.0
+        self.inference_count = 0
+
+        # Trajectory consistency variables
+        self.previous_trajectory_local_ = None
+        self.endpoint_diff_threshold_ = 5.0
+
+        # Visualization settings
+        self.viz_enabled_ = True
+        self.viz_save_dir_ = os.path.join(os.path.expanduser("~"), 'git', 'HYU_Validation_Framework', 'visualization_output')
+        if self.viz_enabled_ and not os.path.exists(self.viz_save_dir_):
+            os.makedirs(self.viz_save_dir_)
+            rospy.loginfo(f"Created visualization directory: {self.viz_save_dir_}")
+
+        # Publisher initialization
+        self.p_trajectory_ = rospy.Publisher(
+            "app/pla/trajectory", autohyu_msgs.Trajectory, queue_size=10
+        )
+        self.p_rviz_trajectory_ = rospy.Publisher(
+            "hmi/pla/trajectory_ml", MarkerArray, queue_size=10
+        )
+        self.p_rviz_prediction_ = rospy.Publisher(
+            "hmi/pla/prediction_ml", MarkerArray, queue_size=10
+        )
+
+        # Multi-threading
+        self.executor = ThreadPoolExecutor(max_workers=4)
+
+    def Terminate(self):
+        """
+        Cleanup function to unregister all subscribers and publishers.
+        """
+        self.s_planning_space_.unregister()
+        self.p_trajectory_.unregister()
+        self.p_rviz_trajectory_.unregister()
+        self.p_rviz_prediction_.unregister()
+
+    def CallbackPlanning(self, msg):
+        """
+        Callback function for planning space subscriber.
+
+        Args:
+            msg: PlanningSpace message containing environment information
+        """
+        self.i_planning_space_ = msg
+        self.b_is_planning_space_ = True
+
+    def Run(self):
+        """
+        Main loop for ML planning node.
+
+        This function runs continuously, processing planning space data
+        and publishing trajectories and predictions for autonomous driving.
+        """
+        rate = rospy.Rate(1/self.period)
+        total_elapsed_time = []
+        publish_elapsed_time = []
+        model_elapsed_time = []
+
+        while not rospy.is_shutdown():
+            try:
+                # ----------------------------------------------------------------------
+                # Get subscribed variables
+                # ----------------------------------------------------------------------
+                if not self.b_is_planning_space_:
+                    rospy.logerr_throttle(1.0, "Wait for planning space...")
+                    rate.sleep()
+                    continue
+
+                t1 = time.time()
+                planning_space = self.i_planning_space_
+
+                # Extract ego vehicle state
+                ego_x_global_m = planning_space.ego.state[-1].x
+                ego_y_global_m = planning_space.ego.state[-1].y
+                ego_yaw_global_rad = planning_space.ego.state[-1].heading
+
+                ego_origin_global = np.array([ego_x_global_m, ego_y_global_m])
+
+                # ----------------------------------------------------------------------
+                # Preprocessing
+                # ----------------------------------------------------------------------
+                model_input, ego_origin_global_m, ego_theta_theta_global_rad, planning_space_lanes_global, data_npy = self.alg_ml_planning_.run_preprocess(planning_space)
+
+                # ----------------------------------------------------------------------
+                # Run ML algorithm
+                # ----------------------------------------------------------------------
+                t2 = time.time()
+                trajectory_local, prediction_local = self.alg_ml_planning_.run_algorithm(model_input)
+
+                # Check if trajectory is nearly stationary
+                start_point = trajectory_local[0, 0, :2]  # x, y of first point
+                end_point = trajectory_local[0, -1, :2]   # x, y of last point
+                trajectory_distance = np.linalg.norm(end_point - start_point)
+
+                # Store current trajectory for next iteration
+                self.previous_trajectory_local_ = trajectory_local.copy()
+
+                # ----------------------------------------------------------------------
+                # Transform predictions to global coordinates
+                # ----------------------------------------------------------------------
+                t3 = time.time()
+                batch_size, num_agents, time_steps, feature_dim = prediction_local.shape
+
+                # Only use the first 2 dimensions (x, y) if feature_dim > 2
+                if feature_dim > 2:
+                    prediction_xy = prediction_local[:, :, :, :2]  # Extract x, y coordinates
+                else:
+                    prediction_xy = prediction_local
+
+                # Get agent positions from model_input
+                agent_positions = model_input["agent"]["position"].cpu().numpy()
+                ego_agent_count = agent_positions.shape[1]
+
+                # Get current positions of non-ego agents (last time step)
+                if ego_agent_count > num_agents:
+                    agent_current_positions = agent_positions[0, 1:num_agents+1, -1, :]
+                else:
+                    # Fallback if we don't have enough agents
+                    agent_current_positions = np.zeros((num_agents, 2))
+                    available_agents = min(ego_agent_count - 1, num_agents)
+                    if available_agents > 0:
+                        agent_current_positions[:available_agents] = agent_positions[0, 1:available_agents+1, -1, :]
+
+                # Transform prediction to global coordinates
+                prediction_global = np.zeros((batch_size, num_agents, time_steps, 2))
+
+                for agent_idx in range(num_agents):
+                    # Get agent's current position in local coordinates
+                    agent_start_local = agent_current_positions[agent_idx]
+
+                    # Transform agent's starting position to global coordinates
+                    agent_start_local_3d = np.array([[agent_start_local[0], agent_start_local[1], 0]])
+                    agent_start_global = function_transform.local_to_global(
+                        ego_origin_global, ego_yaw_global_rad,
+                        agent_start_local_3d.reshape(1, 1, 3)
+                    )
+                    agent_start_global_xy = agent_start_global[0, 0, :2]
+
+                    # Get prediction trajectory for this agent
+                    agent_prediction_local = prediction_xy[0, agent_idx, :, :]
+
+                    # Transform each prediction point to global coordinates
+                    for t in range(time_steps):
+                        pred_point_local_3d = np.array([[[
+                            agent_prediction_local[t, 0],
+                            agent_prediction_local[t, 1],
+                            0
+                        ]]])
+
+                        pred_point_global = function_transform.local_to_global(
+                            ego_origin_global, ego_yaw_global_rad, pred_point_local_3d
+                        )
+
+                        # Offset by the difference between agent and ego positions
+                        prediction_global[0, agent_idx, t, :] = (
+                            agent_start_global_xy +
+                            (pred_point_global[0, 0, :2] - ego_origin_global)
+                        )
+
+                # Transform trajectory to global coordinates
+                trajectory_global = function_transform.local_to_global(ego_origin_global, ego_yaw_global_rad, trajectory_local)
+
+                # ----------------------------------------------------------------------
+                # Postprocessing
+                # ----------------------------------------------------------------------
+                trajectory_with_speed_global = self.alg_ml_planning_.run_postprocess(trajectory_global)
+
+                o_trajectory = self.ArrayToTrajectory(trajectory_with_speed_global)
+
+                o_trajectory_rviz = ros_bridge_trajectories.UpdateRvizTrajectory(o_trajectory, 1, 0, 0, 0.8)
+                o_prediction_rviz = ros_bridge_trajectories.UpdateRvizPrediction(prediction_global, o_trajectory.header, 0, 0, 1, 0.6)
+
+                t4 = time.time()
+
+                # Performance logging
+                print("Preprocess time: {:.4f} ms".format((t2-t1) * 1000))
+                print("Model time: {:.4f} ms".format((t3-t2) * 1000))
+                print("Postprocess time: {:.4f} ms".format((t4-t3) * 1000))
+                print("Total time: {:.4f} ms".format((t4-t1) * 1000))
+                print("------------------------")
+
+                # ----------------------------------------------------------------------
+                # Publish results
+                # ----------------------------------------------------------------------
+                self.p_trajectory_.publish(o_trajectory)
+                self.p_rviz_trajectory_.publish(o_trajectory_rviz)
+                self.p_rviz_prediction_.publish(o_prediction_rviz)
+
+                gc.collect()
+
+            except Exception as e:
+                rospy.logerr(f"Error in Run loop: {e}")
+                import traceback
+                rospy.logerr(traceback.format_exc())
+
+            rate.sleep()
+
+    def ArrayToTrajectory(self, trajectory):
+        """
+        Convert numpy array to ROS Trajectory message.
+
+        Args:
+            trajectory: numpy array [1, 80, 4] containing (x, y, yaw, speed)
+
+        Returns:
+            autohyu_msgs.Trajectory message
+        """
+        o_trajectory = autohyu_msgs.Trajectory()
+        o_trajectory.header = self.i_planning_space_.header
+        o_trajectory.point = []
+
+        for i in range(trajectory.shape[1]):
+            point = autohyu_msgs.TrajectoryPoint()
+            point.x = trajectory[0][i][0]
+            point.y = trajectory[0][i][1]
+            point.yaw = trajectory[0][i][2]
+            point.speed = trajectory[0][i][3]
+            point.time = 0.1 * i
+            o_trajectory.point.append(point)
+
+        return o_trajectory
+
+if __name__ == '__main__':
+    """
+    Main entry point for the ML planning node.
+    """
+    node_name = "mid2mid_planning_ml_node"
+    node = MLPlanningNode(node_name, 0.1)  # 10Hz update rate
+
+    try:
+        node.Run()
+    finally:
+        if node is not None:
+            node.Terminate()

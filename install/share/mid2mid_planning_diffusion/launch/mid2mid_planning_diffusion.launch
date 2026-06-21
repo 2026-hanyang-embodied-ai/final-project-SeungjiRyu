@@ -1,0 +1,6 @@
+<!-- -->
+<launch>
+    <!-- ML-based diffusion planner node -->
+    <node pkg="mid2mid_planning_diffusion" type="mid2mid_planning_diffusion_node.py" name="mid2mid_planning_diffusion" output="screen" respawn="true">
+    </node>
+</launch>

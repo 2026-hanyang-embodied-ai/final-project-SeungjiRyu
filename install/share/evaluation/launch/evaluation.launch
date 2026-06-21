@@ -1,0 +1,17 @@
+<!-- -->
+<launch>
+    <arg name="location"    default="town13"/>
+    <arg name="mode"        default="morai"/>
+    <arg name="moving_average_size" default="50"/>
+    <arg name="epsilon"         default="0.5"/>
+    <arg name="one_hit_mode" default="1"/>
+
+    <rosparam file="config/rosparam_system.yaml"    command="load"/>    
+    <node pkg="evaluation" type="evaluation" name="evaluation" output="screen" respawn="true">
+        <param name="location"  value="$(arg location)"/>
+        <param name="mode"      value="$(arg mode)"/>
+        <param name="moving_average_size" value="$(arg moving_average_size)"/>
+        <param name="epsilon"   value="$(arg epsilon)"/>
+        <param name="one_hit_mode" value="$(arg one_hit_mode)"/>
+    </node>
+</launch>

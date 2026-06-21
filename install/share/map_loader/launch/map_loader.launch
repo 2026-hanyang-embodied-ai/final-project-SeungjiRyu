@@ -1,0 +1,15 @@
+<!-- -->
+<launch>
+    <arg name="location"    default="carmaker_urban_highway"/>
+    <!-- <arg name="location"    default="carmaker_roundabout"/> -->
+
+    <!-- CARMAKER -->
+    <arg name="map_file_carmaker_urban_highway" default="$(find map_loader)/../../../resources/map/carmaker/UrbanRoad_RuralRoad_Expressway.osm" />
+    <arg name="map_file_carmaker_roundabout" default="$(find map_loader)/../../../resources/map/carmaker/RuralRoad_Roundabouts.osm" />
+
+    <rosparam file="config/rosparam_system.yaml"    command="load"/>    
+    <node pkg="map_loader" type="map_loader" name="map_loader" output="screen" respawn="true">
+        <param name="map_file"  value="$(arg map_file_carmaker_urban_highway)" if="$(eval location=='carmaker_urban_highway')"/>
+        <param name="map_file"  value="$(arg map_file_carmaker_roundabout)" if="$(eval location=='carmaker_roundabout')"/>
+    </node>
+</launch>

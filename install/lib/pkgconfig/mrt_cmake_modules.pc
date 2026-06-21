@@ -1,0 +1,8 @@
+prefix=/home/ailab/git/HYU_Validation_Framework/install
+
+Name: mrt_cmake_modules
+Description: Description of mrt_cmake_modules
+Version: 1.0.5
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

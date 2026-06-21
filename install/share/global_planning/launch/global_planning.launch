@@ -1,0 +1,6 @@
+<!-- -->
+<launch>
+    <rosparam file="config/rosparam_system.yaml"    command="load"/>    
+    <node pkg="global_planning" type="global_planning" name="global_planning" output="screen" respawn="true">
+    </node>
+</launch>

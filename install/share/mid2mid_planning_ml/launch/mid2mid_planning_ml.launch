@@ -1,0 +1,5 @@
+<!-- -->
+<launch>
+	<node pkg="mid2mid_planning_ml" type="mid2mid_planning_ml_node.py" name="mid2mid_planning_ml_node" output="screen" respawn="true">
+	</node>
+</launch>
