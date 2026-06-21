@@ -1,0 +1,12 @@
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==2.0.0+cu118
+torchvision==0.15.1+cu118
+numpy==1.26.4
+pytorch_lightning==2.0.1
+tensorboard==2.11.2
+timm==1.0.10
+mmengine
+scipy==1.13.1
+rospkg
+netifaces
+pyyaml

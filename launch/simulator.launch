@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Received from Shell Script -->
+  <arg name="location" default="carmaker"/>
+  <arg name="mode" default="carmaker" />
+
+  <!-- CARMAKER -->
+  <arg name="ref_lat_carmaker" default="0.0" />
+  <arg name="ref_lon_carmaker" default="0.0" />
+  <arg name="proj_mode_carmaker" default="local_cartesian" />
+
+  <!-- mode == carmaker -->
+  <include file="$(find carmaker)/launch/bridge.launch" if="$(eval mode=='carmaker')">
+    <arg name="location" value="$(arg location)" />
+
+    <!-- carmaker -->
+    <arg name="ref_lat" value="$(arg ref_lat_carmaker)" if="$(eval location=='carmaker')"/>
+    <arg name="ref_lon" value="$(arg ref_lon_carmaker)" if="$(eval location=='carmaker')"/>
+    <arg name="proj_mode" value="$(arg proj_mode_carmaker)" if="$(eval location=='carmaker')"/>
+  </include>
+</launch>

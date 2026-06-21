@@ -1,0 +1,45 @@
+# ML Planning Configuration
+# Select which ML model to use for trajectory planning
+
+# Model selection: "diffusion_planner" or "pluto"
+model_type: "diffusion_planner"
+
+# Diffusion Planner configuration
+diffusion_planner:
+  config_path: "src/mid2mid_planning_diffusion/src/diffusion_planner/checkpoints/args.json"
+  checkpoint_dir: "src/mid2mid_planning_diffusion/src/diffusion_planner/checkpoints"
+  checkpoint_name: "model.pth"
+  enable_ema: true
+
+  future_steps: 80
+
+  # Collision Guidance
+  use_collision_guidance: false
+  guidance_scale: 0.5
+
+  # Lane Keeping Guidance
+  lane_keeping:
+    enable: false
+    scale: 6.0
+    threshold: 0.01
+
+# Pluto configuration
+pluto:
+  checkpoint_path: "src/mid2mid_planning_pluto/checkpoints/model.ckpt"
+  future_steps: 50
+  history_steps: 21
+  dim: 128
+  state_channel: 6
+  polygon_channel: 6
+  history_channel: 9
+  encoder_depth: 4
+  decoder_depth: 4
+  num_heads: 4
+  num_modes: 12
+  ref_free_traj: true
+  radius: 100.0
+
+# Common settings
+common:
+  device: "cuda:0"
+  period: 0.1  # [s] planning period

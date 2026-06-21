@@ -1,0 +1,5 @@
+<!-- -->
+<launch>
+    <node pkg="mid2mid_planning_pluto" type="mid2mid_planning_pluto_node.py" name="mid2mid_planning_pluto" output="screen" respawn="true">
+    </node>
+</launch>
