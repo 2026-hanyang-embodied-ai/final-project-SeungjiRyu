@@ -4,8 +4,8 @@
 
 | Resource | Link |
 |----------|------|
-| Presentation Video | *(YouTube link — to be added)* |
-| Demo Video | *(YouTube link — to be added)* |
+| Presentation Video | [YouTube](https://youtu.be/K0SmEDuolcY) |
+| Demo Video | [YouTube](https://youtu.be/K0SmEDuolcY) |
 | Presentation Slides | [Google Slides](https://docs.google.com/presentation/d/138xGUq43BR-bDI26JRtEReK5kgTf6fG8/edit?usp=drive_link&ouid=108242632374087373637&rtpof=true&sd=true) |
 | Report | [Google Drive](https://drive.google.com/file/d/1JDw7noqTI9lnimkm0i9857rL1dqP2imS/view?usp=drive_link) |
 | Dataset | [nuPlan Dataset Setup Guide](https://nuplan-devkit.readthedocs.io/en/latest/dataset_setup.html) |
