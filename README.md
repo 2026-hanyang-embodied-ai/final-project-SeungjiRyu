@@ -5,8 +5,8 @@
 | Resource | Link |
 |----------|------|
 | Presentation Video | [YouTube](https://youtu.be/K0SmEDuolcY) |
-| Demo Video | [YouTube](https://youtu.be/K0SmEDuolcY) |
-| Presentation Slides | [Google Slides](https://docs.google.com/presentation/d/138xGUq43BR-bDI26JRtEReK5kgTf6fG8/edit?usp=drive_link&ouid=108242632374087373637&rtpof=true&sd=true) |
+| Demo Video | [YouTube](https://youtu.be/dBSS8pwAD54) |
+| Presentation Slides | [Google Drive](https://drive.google.com/file/d/1uUuFrKRYVG7ghMQkFrM7upQ5MFsKixkc/view?usp=sharing) |
 | Report | [Google Drive](https://drive.google.com/file/d/1JDw7noqTI9lnimkm0i9857rL1dqP2imS/view?usp=drive_link) |
 | Dataset | [nuPlan Dataset Setup Guide](https://nuplan-devkit.readthedocs.io/en/latest/dataset_setup.html) |
 
@@ -303,7 +303,7 @@ pluto:
 
 ## Additional Resources
 
-For comprehensive system operation instructions including CarMaker integration and testing procedures, please refer to the [project presentation slides](https://docs.google.com/presentation/d/138xGUq43BR-bDI26JRtEReK5kgTf6fG8/edit?usp=drive_link&ouid=108242632374087373637&rtpof=true&sd=true) and the [project report](https://drive.google.com/file/d/1JDw7noqTI9lnimkm0i9857rL1dqP2imS/view?usp=drive_link).
+For a walkthrough of the environment setup, CarMaker configuration, and system operation, refer to the [demo video](https://youtu.be/dBSS8pwAD54). For comprehensive documentation including architecture details and test results, refer to the [presentation slides](https://drive.google.com/file/d/1uUuFrKRYVG7ghMQkFrM7upQ5MFsKixkc/view?usp=sharing) and the [project report](https://drive.google.com/file/d/1JDw7noqTI9lnimkm0i9857rL1dqP2imS/view?usp=drive_link).
 
 ## Citation
 
