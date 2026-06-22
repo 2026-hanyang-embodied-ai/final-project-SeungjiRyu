@@ -228,6 +228,23 @@ source install/setup.bash
 
 ## Running the System
 
+### Test Scenarios Setup
+
+Copy the test scenario folders from `resources/test_scenarios/` to your CarMaker project's scenario directory before running:
+
+```
+resources/test_scenarios/
+├── 01_highway_normal
+├── 02_urban_normal
+├── 03_highway_scc
+├── 04_urban_unprotected_rightturn
+├── 05_urban_unprotected_straight
+├── 06_urban_leftturn_pedestrian
+├── 07_urban_roundabout
+├── 08_hard_construction
+└── 09_urban_cutin
+```
+
 ### Quick Start
 
 Launch the complete autonomous driving stack with CarMaker simulator:
